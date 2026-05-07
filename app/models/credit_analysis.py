@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
@@ -19,6 +19,7 @@ class CreditAnalysis(Base):
     customer_id = Column(Integer, ForeignKey("customer.id"), nullable=False)
 
     score = Column(Integer, nullable=False)
+    requested_amount = Column(Float, nullable=False)
     risk_level = Column(Enum(RiskLevel), nullable=False)
     ai_explanation = Column(String, nullable=False)
 

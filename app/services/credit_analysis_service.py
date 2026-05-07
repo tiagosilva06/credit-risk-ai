@@ -60,6 +60,15 @@ class CreditAnalysisService:
             score -= 10
 
         return max(0, min(score, 100))
+
+    
+    def get_risk_level(self, score: int) -> RiskLevel:
+        if score >= 75:
+            return RiskLevel.LOW
+        elif score >= 50:
+            return RiskLevel.MEDIUM
+        else:
+            return RiskLevel.HIGH
     
 
     def create_analysis(self, customer: Customer, requested_amount: float, db: Session) -> CreditAnalysis:
