@@ -1,3 +1,5 @@
+from groq import Groq
+from app.core.config import settings
 from sqlalchemy.orm import Session
 
 from app.models.customer import Customer, EmploymentStatus
@@ -69,17 +71,52 @@ class CreditAnalysisService:
             return RiskLevel.MEDIUM
         else:
             return RiskLevel.HIGH
+        
+
+    
+    def generate_ai_analysis(self, customer: Customer, score: int, risk_level: RiskLevel):
+        prompt = f"""
+        You are a credit analyst. Based on the following customer data, provide a professional credit analysis in Portuguese (Brazil).
+
+        Customer Data:
+        - Name: {customer.name}
+        - Age: {customer.age}
+        - Monthly Income: R$ {customer.monthly_income:,.2f}
+        - Current Credit Score: {customer.current_score}
+        - Active Debts: R$ {customer.active_debts:,.2f}
+        - Patrimony: R$ {customer.patrimony:,.2f}
+        - Employment Status: {customer.employment_status.value}
+
+        Calculated Risk Score: {score}/100
+        Risk Level: {risk_level.value}
+    
+        Provide a clear and objective analysis in 3 paragraphs:
+        1. Customer financial profile summary
+        2. Main risk factors identified
+        3. Credit recommendation
+        """
+
+        client = Groq(api_key=settings.GROQ_API_KEY)
+
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500
+        )
+
+        return response.choices[0].message.content
     
 
     def create_analysis(self, customer: Customer, requested_amount: float, db: Session) -> CreditAnalysis:
         score = self.calculate_score(customer)
         risk_level = self.get_risk_level(score)
+        ai_explanation = self.generate_ai_analysis(customer, score, risk_level)
 
         analysis = CreditAnalysis(
             customer_id=customer.id,
             score=score,
             risk_level=risk_level,
-            ai_explanation="Ai analysis will be implemented soon..",
+            ai_explanation=ai_explanation,
             requested_amount=requested_amount
         )
 
