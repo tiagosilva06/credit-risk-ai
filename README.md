@@ -12,15 +12,17 @@ An intelligent REST API for credit risk analysis powered by AI. The system recei
 - [Features](#features)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
   - [Environment Variables](#environment-variables)
-  - [Running the Application](#running-the-application)
+  - [Running with Docker](#running-with-docker-recommended)
+  - [Running without Docker](#running-without-docker)
 - [API Documentation](#api-documentation)
   - [Authentication](#authentication)
   - [Customers](#customers)
   - [Credit Analysis](#credit-analysis)
 - [Score Calculation Engine](#score-calculation-engine)
+- [Tests](#tests)
 - [Project Structure](#project-structure)
+- [Author](#author)
 
 ---
 
@@ -44,9 +46,9 @@ The project was built with a production-grade architecture, following clean code
 | **Groq + LLaMA 3** | AI-generated credit analysis |
 | **JWT (python-jose)** | Authentication and authorization |
 | **bcrypt** | Password hashing |
-| **Docker** | PostgreSQL containerization |
-| **Alembic** | Database migrations |
+| **Docker** | Full stack containerization |
 | **Uvicorn** | ASGI server |
+| **Pytest** | Unit testing |
 
 ---
 
@@ -77,7 +79,8 @@ Request → Endpoint (Controller) → Service (Business Logic) → Model (Databa
 - ✅ JWT authentication (register and login)
 - ✅ Protected endpoints — requires valid token
 - ✅ Full Swagger documentation at `/docs`
-- ✅ PostgreSQL via Docker
+- ✅ Full Docker containerization — API + Database
+- ✅ Unit tests with Pytest
 - ✅ Layered architecture with clean code practices
 
 ---
@@ -86,46 +89,16 @@ Request → Endpoint (Controller) → Service (Business Logic) → Model (Databa
 
 ### Prerequisites
 
-Make sure you have the following installed:
-
-- [Python 3.13+](https://www.python.org/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/)
 
-### Installation
-
-1. Clone the repository:
-
-```bash
-git clone https://github.com/tiagosilva06/credit-risk-ai.git
-cd credit-risk-ai
-```
-
-2. Create and activate virtual environment:
-
-```bash
-python -m venv venv
-
-# Windows (Git Bash)
-source venv/Scripts/activate
-
-# Mac/Linux
-source venv/bin/activate
-```
-
-3. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the project root:
 
 ```env
 # Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/creditrisk
+DATABASE_URL=postgresql://postgres:postgres@db:5432/creditrisk
 
 # Security
 SECRET_KEY=your-secret-key-here-change-in-production
@@ -138,21 +111,67 @@ GROQ_API_KEY=your-groq-api-key-here
 
 > Get your free Groq API key at [console.groq.com](https://console.groq.com)
 
-### Running the Application
+---
 
-1. Start the PostgreSQL database:
+### Running with Docker (Recommended)
+
+1. Make sure Docker Desktop is running
+
+2. Start all services:
 
 ```bash
-docker compose up -d
+docker compose up --build
 ```
 
-2. Start the API server:
+3. Access the Swagger documentation:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+> On the first run, Docker will build the image and download all dependencies automatically. No need to install Python or any other dependency manually.
+
+---
+
+### Running without Docker
+
+1. Create and activate virtual environment:
+
+```bash
+python -m venv venv
+
+# Windows (Git Bash)
+source venv/Scripts/activate
+
+# Mac/Linux
+source venv/bin/activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Update `.env` to use localhost:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/creditrisk
+```
+
+4. Start only the database:
+
+```bash
+docker compose up db -d
+```
+
+5. Start the API server:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-3. Access the Swagger documentation:
+6. Access the Swagger documentation:
 
 ```
 http://127.0.0.1:8000/docs
@@ -267,6 +286,24 @@ The scoring engine evaluates 6 financial attributes, generating a score from 0 t
 
 ---
 
+## Tests
+
+Unit tests implemented with **Pytest** for the credit score calculation engine:
+
+```bash
+# Run tests
+pytest tests/ -v
+```
+
+**Test coverage:**
+- Score calculation with good financial profile
+- Unemployment penalty validation
+- High debt ratio penalty validation
+- Score boundaries — never below 0 or above 100
+- Risk level classification — Low, Medium, High
+
+---
+
 ## Project Structure
 
 ```
@@ -295,12 +332,21 @@ credit-risk-ai/
 │   │   └── credit_analysis_service.py
 │   └── main.py
 ├── tests/
+│   └── test_credit_analysis_service.py
 ├── .env
 ├── .gitignore
+├── conftest.py
 ├── docker-compose.yml
 ├── Dockerfile
 └── requirements.txt
 ```
+
+---
+
+## Author
+
+**Tiago Silva**
+[GitHub](https://github.com/tiagosilva06) • [LinkedIn](https://linkedin.com/in/tiago-silvadev)
 
 ---
 
